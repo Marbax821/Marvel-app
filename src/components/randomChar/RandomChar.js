@@ -1,7 +1,7 @@
 import { Component } from 'react';
 import Spinner from '../spinner/spinner';
-import MarvelService from '../../services/MarvelService'
-import ErrorMessage from '../errorMessage/errorMessage'
+import MarvelService from '../../services/MarvelService';
+import ErrorMessage from '../errorMessage/errorMessage';
 
 import './randomChar.scss';
 import mjolnir from '../../resources/img/mjolnir.png';
@@ -9,7 +9,7 @@ import mjolnir from '../../resources/img/mjolnir.png';
 class RandomChar extends Component {
     constructor(props) {
         super(props);
-        this.updateChar();
+        //console.log('constructor');
     }
 
     state = {
@@ -20,30 +20,51 @@ class RandomChar extends Component {
 
     marvelService = new MarvelService();
 
+    // Любые обновления, api запросы и тд. должны делаться в componentDidMount но никак не в constructor
+    componentDidMount() {
+        //console.log('mount');
+        this.updateChar();
+    }
+
+    componentWillUnmount() {
+        //console.log('unmount');
+    }
+
     onCharLoaded = (char) => {
-        this.setState({ 
+        //console.log('update');
+        this.setState({
             char: char,
             // как только загрузились данные переопределяем loading в false
-            loading: false 
+            loading: false
         })
     }
 
     onError = () => {
-        this.setState({ 
+        this.setState({
             loading: false,
             error: true
         })
     }
 
+    // метод для показа спиннера после нажатия на кнопку подгрузки рандомного персонажа
+    onCharLoading = () => {
+        this.setState({
+            loading: true
+        })
+    }
+
     updateChar = () => {
         const id = Math.floor(Math.random() * (1011400 - 1011000) + 1011000);
+        this.onCharLoading();
         this.marvelService
             .getCharacter(id)
             .then(this.onCharLoaded)
             .catch(this.onError);
     }
 
+
     render() {
+        //console.log('render');
         const { char, loading, error } = this.state;
         // если есть ошибка то показывать компонент ошибки
         const errorMessage = error ? <ErrorMessage /> : null;
@@ -51,6 +72,7 @@ class RandomChar extends Component {
         const spinner = loading ? <Spinner /> : null;
         // если нет загрузки или если нет ошибки то будем возвращать компонент View
         const content = !(loading || error) ? <View char={char} /> : null;
+
 
         return (
             <div className="randomchar">
@@ -65,7 +87,7 @@ class RandomChar extends Component {
                     <p className="randomchar__title">
                         Or choose another one
                     </p>
-                    <button className="button button__main">
+                    <button onClick={this.updateChar} className="button button__main">
                         <div className="inner">try it</div>
                     </button>
                     <img src={mjolnir} alt="mjolnir" className="randomchar__decoration" />
@@ -77,10 +99,14 @@ class RandomChar extends Component {
 
 const View = ({ char }) => {
     const { name, description, thumbnail, homepage, wiki } = char;
+    let imgStyle = { 'objectFit': 'cover' };
+    if (thumbnail === 'http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg') {
+        imgStyle = { 'objectFit': 'contain' };
+    }
 
     return (
         <div className="randomchar__block">
-            <img src={thumbnail} alt="Random character" className="randomchar__img" />
+            <img src={thumbnail} alt="Random character" className="randomchar__img" style={imgStyle} />
             <div className="randomchar__info">
                 <p className="randomchar__name">{name}</p>
                 <p className="randomchar__descr">
