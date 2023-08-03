@@ -1,17 +1,14 @@
 import { useEffect, useState } from 'react';
 import Spinner from '../spinner/spinner';
-import MarvelService from '../../services/MarvelService';
+import useMarvelService from '../../services/MarvelService';
 import ErrorMessage from '../errorMessage/errorMessage';
 
 import mjolnir from '../../resources/img/mjolnir.png';
 import './randomChar.scss';
 
-const RandomChar = (props) => {
+const RandomChar = () => {
     const [char, setChar] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(false);
-
-    const marvelService = new MarvelService();
+    const { loading, error, getCharacter, clearError } = useMarvelService();
 
     useEffect(() => {
         //console.log('mount');
@@ -26,26 +23,12 @@ const RandomChar = (props) => {
     const onCharLoaded = (char) => {
         //console.log('update');
         setChar(char);
-        setLoading(false);
-    }
-    
-    // метод для показа спиннера после нажатия на кнопку подгрузки рандомного персонажа
-    const onCharLoading = () => {
-        setLoading(true);
-    }
-
-    const onError = () => {
-        setLoading(false);
-        setError(true);
     }
 
     const updateChar = () => {
+        clearError();
         const id = Math.floor(Math.random() * (1011400 - 1011000) + 1011000);
-        onCharLoading();
-        marvelService
-            .getCharacter(id)
-            .then(onCharLoaded)
-            .catch(onError);
+        getCharacter(id).then(onCharLoaded);
     }
 
     // если есть ошибка то показывать компонент ошибки
@@ -79,6 +62,10 @@ const RandomChar = (props) => {
 }
 
 const View = ({ char }) => {
+    // Проверяем, что char существует и не является null
+    if (!char) {
+        return null; // Возвращаем null, если char не существует или равен null
+    }
     const { name, description, thumbnail, homepage, wiki } = char;
     let imgStyle = { 'objectFit': 'cover' };
     if (thumbnail === 'http://i.annihil.us/u/prod/marvel/i/mg/b/40/image_not_available.jpg') {
