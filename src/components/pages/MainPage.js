@@ -3,6 +3,7 @@ import { useState } from "react";
 import RandomChar from "../randomChar/RandomChar";
 import CharList from "../charList/CharList";
 import CharInfo from "../charInfo/CharInfo";
+import CharSearchForm from "../charSearchForm/charSearchForm";
 import ErrorBoundary from '../errorBoundary/errorBoundary';
 
 import decoration from '../../resources/img/vision.png';
@@ -22,10 +23,15 @@ const MainPage = () => {
             <div className="char__content">
                 {/* передаем метод onCharSelected в CharList */}
                 <CharList onCharSelected={onCharSelected} />
-                <ErrorBoundary>
-                    {/* передаем id из state в CharInfo при помощи charId */}
-                    <CharInfo charId={selectedChar} />
-                </ErrorBoundary>
+                <div>
+                    <ErrorBoundary>
+                        {/* передаем id из state в CharInfo при помощи charId */}
+                        <CharInfo charId={selectedChar} />
+                    </ErrorBoundary>
+                    <ErrorBoundary>
+                        <CharSearchForm />
+                    </ErrorBoundary>
+                </div>
             </div>
             <img className="bg-decoration" src={decoration} alt="vision" />
         </>
