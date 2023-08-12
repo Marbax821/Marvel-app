@@ -1,9 +1,27 @@
 import { useState, useEffect, useRef } from 'react';
-import Spinner from '../spinner/spinner';
 import useMarvelService from '../../services/MarvelService';
+import Spinner from '../spinner/spinner';
 import ErrorMessage from '../errorMessage/errorMessage';
 
 import './charList.scss';
+
+const setContent = (process, Component, newItemLoading) => {
+    switch (process) {
+        case 'waiting':
+            return <Spinner />;
+            break;
+        case 'loading':
+            return newItemLoading ? <Component /> : <Spinner />;
+            break;
+        case 'confirmed':
+            return <Component />
+        case 'error':
+            return <ErrorMessage />;
+            break;
+        default:
+            throw new Error('Unexpected process state');
+    }
+}
 
 
 //скрывать кнопку прев при достиженни первых персонажей
@@ -14,7 +32,7 @@ const CharList = (props) => {
     const [charEnded, setCharEnded] = useState(false);
     const [selectedChar, setSelectedChar] = useState(null); // добавляем состояние для хранения идентификатора выбранного персонажа
 
-    const {loading, error, getAllCharacters} = useMarvelService();
+    const { getAllCharacters, process, setProcess } = useMarvelService();
 
     useEffect(() => {
         onRequest(offset, true);
@@ -23,7 +41,7 @@ const CharList = (props) => {
 
     const onRequest = (offset, initial) => {
         initial ? setNewItemLoading(false) : setNewItemLoading(true)
-        getAllCharacters(offset).then(onCharListLoaded);
+        getAllCharacters(offset).then(onCharListLoaded).then(() => setProcess('confirmed'));
 
         //console.log('onrequest');
     }
@@ -92,22 +110,15 @@ const CharList = (props) => {
         )
     }
 
-    const items = renderItems(charList);
-
-    const errorMessage = error ? <ErrorMessage /> : null;
-    const spinner = loading && !newItemLoading ? <Spinner /> : null;
-
-    if (loading) {
-        import('./someFunc')
-            .then(obj => obj.logger())
-            .catch();
-    }
+    // if (loading) {
+    //     import('./someFunc')
+    //         .then(obj => obj.logger())
+    //         .catch();
+    // }
 
     return (
         <div className="char__list">
-            {errorMessage}
-            {spinner}
-            {items}
+            {setContent(process, () => renderItems(charList), newItemLoading)}
             {charEnded ? <h2>Ooops, no more characters left</h2> : null}
             <div className="buttons-wrap">
                 <button
